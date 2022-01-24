@@ -1,0 +1,34 @@
+{
+  "files.exclude": {
+    ".nyc_output/": true,
+    "coverage/": true,
+    "dist/": true,
+  },
+  "files.trimTrailingWhitespace": true,
+  "search.exclude": {
+    "**/.git/": true,
+    "**/.nyc_output/": true,
+    ".vscode/": true,
+    "build/": true,
+    "dist/": true,
+    "yarn.lock": true
+  },
+  "eslint.packageManager": "yarn",
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "files.associations": {
+    ".markdownlint.json": "jsonc",
+    ".markdownlintignore": "ignore"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  }
+}
