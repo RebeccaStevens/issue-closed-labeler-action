@@ -1,4 +1,4 @@
-name: Issue Close Labeler
+name: Issue Closed Labeler
 author: Rebecca Stevens
 description: Conditionally add or remove labels of issues when closed via a PR.
 

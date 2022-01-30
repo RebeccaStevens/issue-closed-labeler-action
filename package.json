@@ -1,5 +1,5 @@
 {
-  "name": "issue-close-labeler-action",
+  "name": "issue-closed-labeler-action",
   "version": "0.0.0-development",
   "private": true,
   "description": "Conditionally add labels to issues when closed.",
@@ -8,13 +8,13 @@
     "node",
     "setup"
   ],
-  "homepage": "https://github.com/RebeccaStevens/issue-close-labeler-action#readme",
+  "homepage": "https://github.com/RebeccaStevens/issue-closed-labeler-action#readme",
   "bugs": {
-    "url": "https://github.com/RebeccaStevens/issue-close-labeler-action/issues"
+    "url": "https://github.com/RebeccaStevens/issue-closed-labeler-action/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RebeccaStevens/issue-close-labeler-action.git"
+    "url": "git+https://github.com/RebeccaStevens/issue-closed-labeler-action.git"
   },
   "license": "BSD-3-Clause",
   "author": {
