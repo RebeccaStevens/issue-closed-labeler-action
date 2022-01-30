@@ -18,7 +18,7 @@ Conditionally add or remove labels of issues when closed via a PR.
 
 ### `rules`
 
-A JSON encoded array of conditions that need to be meet and what should happen when they are.
+A JSON encoded array of conditions that need to be met and what should happen when they are.
 
 Examples of unencoded rules.
 
