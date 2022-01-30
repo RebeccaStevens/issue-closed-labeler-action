@@ -34,7 +34,7 @@
     "lint:js": "eslint .",
     "lint:md": "markdownlint \"**/*.md\" --config=.markdownlint.json --ignore-path=.markdownlintignore",
     "prepare": "husky install",
-    "test": "nyc ava"
+    "test": "c8 ava"
   },
   "dependencies": {
     "@actions/core": "^1.6.0",
@@ -46,7 +46,6 @@
   "devDependencies": {
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
-    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@rebeccastevens/eslint-config": "^1.2.2",
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-json": "^4.1.0",
@@ -63,6 +62,7 @@
     "@typescript-eslint/parser": "^5.10.1",
     "@vercel/ncc": "^0.33.1",
     "ava": "^4.0.1",
+    "c8": "^7.11.0",
     "codecov": "^3.8.3",
     "commitizen": "^4.2.4",
     "cspell": "^5.17.0",
@@ -88,7 +88,6 @@
     "lint-staged": "^12.3.2",
     "markdownlint-cli": "^0.30.0",
     "marked": "^4.0.12",
-    "nyc": "^15.1.0",
     "prettier": "2.5.1",
     "rimraf": "^3.0.2",
     "rollup": "^2.66.1",
