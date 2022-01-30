@@ -8,7 +8,7 @@ import { findPassingRule, parseRules } from "./rules";
 import { notNullable, payloadIsAsExpected } from "./typeguards";
 import { getRepoName } from "./utils";
 
-const ghToken = core.getInput("github_token");
+const ghToken = core.getInput("token");
 const rawRules = core.getInput("rules");
 
 await main().catch((error) => {

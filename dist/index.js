@@ -86697,7 +86697,7 @@ function isRawConditionComplexFull(condition) {
     return Array.isArray(condition[0]);
 }
 
-const ghToken = core.getInput("github_token");
+const ghToken = core.getInput("token");
 const rawRules = core.getInput("rules");
 await main().catch((error) => {
     core.setFailed(error instanceof Error ? error.message : String(error));
