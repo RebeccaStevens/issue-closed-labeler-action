@@ -33,3 +33,8 @@ jobs:
         run: yarn semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Tags
+        uses: Actions-R-Us/actions-tagger@latest
+        with:
+          publish_latest_tag: true
