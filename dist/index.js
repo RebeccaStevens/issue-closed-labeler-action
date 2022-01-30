@@ -1,3 +1,4 @@
+import assert from 'node:assert';
 import require$$1$1 from 'os';
 import require$$0 from 'fs';
 import require$$4$2 from 'path';
@@ -10,6 +11,21 @@ import Stream from 'stream';
 import Url from 'url';
 import require$$0$1 from 'punycode';
 import zlib from 'zlib';
+
+function _mergeNamespaces(n, m) {
+	m.forEach(function (e) {
+		e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
+			if (k !== 'default' && !(k in n)) {
+				var d = Object.getOwnPropertyDescriptor(e, k);
+				Object.defineProperty(n, k, d.get ? d : {
+					enumerable: true,
+					get: function () { return e[k]; }
+				});
+			}
+		});
+	});
+	return Object.freeze(n);
+}
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -1524,7 +1540,7 @@ exports.getIDToken = getIDToken;
 
 }(core));
 
-var github = {};
+var github$1 = {};
 
 var context$1 = {};
 
@@ -86172,11 +86188,11 @@ var __importStar = (commonjsGlobal && commonjsGlobal.__importStar) || function (
     __setModuleDefault(result, mod);
     return result;
 };
-Object.defineProperty(github, "__esModule", { value: true });
-github.getOctokit = context = github.context = void 0;
+Object.defineProperty(github$1, "__esModule", { value: true });
+var getOctokit_1 = github$1.getOctokit = context = github$1.context = void 0;
 const Context = __importStar(context$1);
 const utils_1 = utils$2;
-var context = github.context = new Context.Context();
+var context = github$1.context = new Context.Context();
 /**
  * Returns a hydrated octokit ready to use for GitHub Actions
  *
@@ -86186,13 +86202,581 @@ var context = github.context = new Context.Context();
 function getOctokit(token, options) {
     return new utils_1.GitHub(utils_1.getOctokitOptions(token, options));
 }
-github.getOctokit = getOctokit;
+getOctokit_1 = github$1.getOctokit = getOctokit;
 
-try {
-    core.debug("Test debug message.");
-    const payload = JSON.stringify(context.payload, undefined, 2);
-    console.log(`The event payload: ${payload}`);
+var github = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+	__proto__: null,
+	get getOctokit () { return getOctokit_1; },
+	get context () { return context; },
+	'default': github$1
+}, [github$1]));
+
+const issueIdRegex = /^I_[\dA-Za-z]{16}$/gu;
+const labelIdRegex = /^LA_[\dA-Za-z]{16}$/gu;
+async function getExtraData(repo, octokit, payload) {
+    const query = `query ExtraData($owner: String!, $name: String!, $pr_number: Int!, $num: Int = 100){
+  repository(owner:$owner, name:$name) {
+    pullRequest(number:$pr_number) {
+      merged,
+      mergedAt,
+      closingIssuesReferences(first: $num) {
+        nodes {
+          id,
+          number
+        }
+      }
+    }
+    labels(first: $num) {
+      nodes {
+        id,
+        name
+      }
+    }
+  }
+}`;
+    const { repository: { pullRequest, labels: { nodes: labels }, }, } = await runGraphqlRequest(octokit, query, {
+        owner: repo.owner,
+        name: repo.name,
+        pr_number: payload.pull_request.number,
+    });
+    return {
+        pullRequest,
+        labels,
+    };
 }
-catch (error) {
+async function getIssuesData(repo, octokit, payload, issueNumbers) {
+    const issuesFragments = issueNumbers
+        .map((number) => {
+        assert(typeof number === "number");
+        return `issue${number}: issue(number: ${number}) {
+        ...IssueFragment
+      }`;
+    })
+        .join("");
+    const query = `query IssuesData($owner: String!, $name: String!){
+  repository(owner:$owner, name:$name) {
+    ${issuesFragments}
+  }
+}
+
+fragment IssueFragment on Issue {
+  id,
+  number,
+  closed,
+  closedAt,
+  labels(first: 100) {
+    nodes {
+      id,
+      name
+    }
+  }
+}`;
+    const { repository } = await runGraphqlRequest(octokit, query, {
+        owner: repo.owner,
+        name: repo.name,
+        pr_number: payload.pull_request.number,
+    });
+    return Object.values(repository).map((issue) => ({
+        ...issue,
+        closedAt: typeof issue.closedAt === "string" ? new Date(issue.closedAt) : null,
+        labels: new Set(issue.labels.nodes),
+    }));
+}
+async function updateIssueLabels(octokit, issueLabelChanges) {
+    const issueFragments = [...issueLabelChanges.entries()]
+        .map(([labelableId, [labelIdsToAdd, labelIdsToRemove]]) => {
+        assert(typeof labelableId === "string" && issueIdRegex.test(labelableId), `Invalid labelableId: "${labelableId}"`);
+        assert(Array.isArray(labelIdsToAdd) &&
+            labelIdsToAdd.every((labelId) => typeof labelId === "string" && labelIdRegex.test(labelId)), `Invalid labelIdsToAdd: "${JSON.stringify(labelIdsToAdd)}".`);
+        assert(Array.isArray(labelIdsToRemove) &&
+            labelIdsToRemove.every((labelId) => typeof labelId === "string" && labelIdRegex.test(labelId)), `Invalid labelIdsToRemove: "${JSON.stringify(labelIdsToAdd)}".`);
+        return `addLabelsToLabelable(input: {
+  labelIds: ${JSON.stringify(labelIdsToAdd)},
+  labelableId: "${labelableId}"
+}) {
+  clientMutationId
+}
+removeLabelsFromLabelable(input: {
+  labelIds: ${JSON.stringify(labelIdsToRemove)},
+  labelableId: "${labelableId}"
+}) {
+  clientMutationId
+}`;
+    })
+        .join("");
+    const command = `mutation LabelIssues {
+  ${issueFragments}
+}`;
+    return runGraphqlRequest(octokit, command, {});
+}
+function runGraphqlRequest(octokit, request, parameters) {
+    try {
+        return octokit.graphql(request, parameters);
+    }
+    catch (error) {
+        throw new Error(`Graphql request failed.\nRequest: ${request}\nParameters: ${JSON.stringify(parameters)}\n\nOriginal error message: ${error instanceof Error ? error.message : String(error)}`);
+    }
+}
+
+var LabelOnType;
+(function (LabelOnType) {
+    LabelOnType[LabelOnType["ISSUE"] = 0] = "ISSUE";
+    LabelOnType[LabelOnType["PULL_REQUEST"] = 1] = "PULL_REQUEST";
+})(LabelOnType || (LabelOnType = {}));
+new Set(Object.values(LabelOnType));
+var ExpressionOperation;
+(function (ExpressionOperation) {
+    ExpressionOperation["AND"] = "&";
+    ExpressionOperation["OR"] = "|";
+})(ExpressionOperation || (ExpressionOperation = {}));
+const expressionOperationValues = new Set(Object.values(ExpressionOperation));
+var ExpressionBracket;
+(function (ExpressionBracket) {
+    ExpressionBracket["OPEN"] = "(";
+    ExpressionBracket["CLOSE"] = ")";
+})(ExpressionBracket || (ExpressionBracket = {}));
+new Set(Object.values(ExpressionBracket));
+var ListOperation;
+(function (ListOperation) {
+    ListOperation[ListOperation["NONE"] = 0] = "NONE";
+    ListOperation[ListOperation["SOME"] = 1] = "SOME";
+    ListOperation[ListOperation["ALL"] = 2] = "ALL";
+})(ListOperation || (ListOperation = {}));
+new Set(Object.values(ListOperation));
+
+function getRepoName(payload) {
+    const [owner, name] = payload.repository.full_name.split("/");
+    return { owner, name };
+}
+function toPostfix(infix) {
+    const postfix = [];
+    const infixStack = [];
+    for (const element of infix) {
+        if (infixStack.length === 0 ||
+            infixStack.at(-1) === ExpressionBracket.OPEN) {
+            infixStack.push(element);
+            continue;
+        }
+        if (element === ExpressionBracket.OPEN) {
+            infixStack.push(element);
+            continue;
+        }
+        if (element === ExpressionBracket.CLOSE) {
+            while (infixStack.length > 0) {
+                const op = infixStack.pop();
+                if (op === ExpressionBracket.OPEN) {
+                    break;
+                }
+                postfix.push(op);
+            }
+            continue;
+        }
+        while (infixStack.length > 0 &&
+            getPrecedence(element) >= getPrecedence(infixStack.at(-1))) {
+            const op = infixStack.pop();
+            if (op === ExpressionBracket.OPEN) {
+                break;
+            }
+            postfix.push(op);
+        }
+        infixStack.push(element);
+    }
+    while (infixStack.length > 0) {
+        const op = infixStack.pop();
+        if (op === ExpressionBracket.OPEN) {
+            break;
+        }
+        postfix.push(op);
+    }
+    return postfix;
+}
+function getPrecedence(operator) {
+    switch (operator) {
+        case ExpressionBracket.OPEN:
+        case ExpressionBracket.CLOSE:
+            return 1;
+        case ExpressionOperation.AND:
+            return 2;
+        case ExpressionOperation.OR:
+            return 3;
+        default:
+            return 0;
+    }
+}
+
+function findPassingRule(rules, prLabels, issueLabels) {
+    return rules.find(({ condition }) => {
+        assert(condition.length > 0);
+        const mutableConditionStack = toPostfix(condition);
+        const mutableResultStack = [];
+        while (mutableConditionStack.length > 0) {
+            if (expressionOperationValues.has(mutableConditionStack.at(-1))) {
+                mutableResultStack.push(mutableConditionStack.pop());
+                continue;
+            }
+            if (mutableResultStack.length === 0) {
+                mutableResultStack.push(evaluateListOperation(...mutableConditionStack.pop(), prLabels, issueLabels));
+                continue;
+            }
+            if (!expressionOperationValues.has(mutableResultStack.at(-1))) {
+                const a = mutableResultStack.pop();
+                const b = evaluateListOperation(...mutableConditionStack.pop(), prLabels, issueLabels);
+                const operation = mutableResultStack.pop();
+                assert(expressionOperationValues.has(operation));
+                switch (operation) {
+                    case ExpressionOperation.AND:
+                        mutableResultStack.push(a && b);
+                        continue;
+                    case ExpressionOperation.OR:
+                        mutableResultStack.push(a || b);
+                        continue;
+                    default:
+                        throw new Error(`Unhandled expression operation "${String(operation)}"`);
+                }
+            }
+            mutableResultStack.push(evaluateListOperation(...mutableConditionStack.pop(), prLabels, issueLabels));
+        }
+        assert(mutableResultStack.length === 1);
+        const result = mutableResultStack.pop();
+        assert(typeof result === "boolean");
+        return result;
+    });
+}
+function evaluateListOperation(onType, listOperation, list, prLabels, issueLabels) {
+    const predicate = (label) => onType === LabelOnType.PULL_REQUEST
+        ? prLabels.has(label)
+        : issueLabels.has(label);
+    return listOperation === ListOperation.ALL
+        ? list.every(predicate)
+        : listOperation === ListOperation.SOME
+            ? list.some(predicate)
+            : !list.some(predicate);
+}
+
+const rawLabelOnTypes = new Set([
+    "issue",
+    "pull request",
+    "pr",
+]);
+const rawExpressionOperations = new Set([
+    "and",
+    "&&",
+    "or",
+    "||",
+]);
+const rawListOperations = new Set([
+    "none",
+    "not",
+    "some",
+    "all",
+    "has",
+]);
+
+function payloadIsAsExpected(payload) {
+    assertHasRepoName(payload);
+    return (payload.action === "closed" &&
+        payload.repository.has_issues === true &&
+        payload.pull_request?.merged === true &&
+        typeof payload.pull_request.merged_at === "string" &&
+        Array.isArray(payload.pull_request.labels));
+}
+function assertHasRepoName(payload) {
+    const repoName = payload.repository?.full_name;
+    assert(repoName !== undefined &&
+        repoName.length > 0 &&
+        repoName.split("/").length === 2, "Cannot determin repository's full name.");
+}
+function assertIsLabelOrLabelList(raw) {
+    const simple = typeof raw === "string";
+    if (simple) {
+        return;
+    }
+    assert(Array.isArray(raw));
+    assert(raw.length > 0);
+    for (const label of raw) {
+        assert(typeof label === "string");
+    }
+}
+function notNullable(value) {
+    return value !== undefined && value !== null;
+}
+
+function assertRulesOptionIsValid(raw) {
+    const isRawAnArray = Array.isArray(raw);
+    const rawArray = isRawAnArray ? raw : [raw];
+    for (const [index, rawRule] of rawArray.entries()) {
+        try {
+            assert(typeof rawRule === "object", isRawAnArray
+                ? "Each rule must be an object"
+                : "`rules` must be an object or an array.");
+            assert(rawRule !== null, "A rule cannot be null.");
+            assert(Object.hasOwn(rawRule, "condition"), "Condition is missing from rule.");
+            assertRulesOptionConditionIsValid(rawRule.condition);
+            const hasAdd = Object.hasOwn(rawRule, "add");
+            const hasRemove = Object.hasOwn(rawRule, "remove");
+            assert(hasAdd || hasRemove, "A rule must have at least one action to perform (either add or remove).");
+            if (hasAdd) {
+                assertIsLabelOrLabelList(rawRule.add);
+            }
+            if (hasRemove) {
+                assertIsLabelOrLabelList(rawRule.remove);
+            }
+        }
+        catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+            error.message = `at index ${index}: ${error.message}`;
+        }
+    }
+}
+function assertRulesOptionConditionIsValid(raw) {
+    const simple = typeof raw === "string";
+    if (simple) {
+        return;
+    }
+    assert(Array.isArray(raw), "A condition must be either a label or an array of logic.");
+    assert(raw.length % 2 === 1, "A condtion logic array must be of odd length.");
+    for (const [index, conditionPart] of raw.entries()) {
+        try {
+            if (index % 2 === 0) {
+                assert(Array.isArray(conditionPart) &&
+                    (conditionPart.length === 2 || conditionPart.length === 3), "A condition value must be an array of length 2 or 3.");
+                const [onType, operation, list] = conditionPart.length === 2
+                    ? [undefined, ...conditionPart]
+                    : conditionPart;
+                assert(onType === undefined || rawLabelOnTypes.has(conditionPart[0]), `Invalid label on type ${String(conditionPart[0])}.`);
+                assert(rawListOperations.has(operation), `Unknown list operation "${String(operation)}".`);
+                assertIsLabelOrLabelList(list);
+            }
+            else {
+                assert(rawExpressionOperations.has(conditionPart), `Unknown expression operation "${String(conditionPart)}".`);
+            }
+        }
+        catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+            error.message = `at index ${index}: ${error.message}`;
+        }
+    }
+}
+
+function parseRules(rawRulesJson) {
+    const rawRules = parseRawRulesJson(rawRulesJson);
+    core.debug(`Raw rules: ${JSON.stringify(rawRules, undefined, 2)}`);
+    assertRulesOptionIsValid(rawRules);
+    core.debug("Raw rules appear to be valid - attempting to parse as rich rules.");
+    const rawRulesArray = (Array.isArray(rawRules) ? rawRules : [rawRules]);
+    return rawRulesArray.map((rawRule) => {
+        const condition = parseRawCondition(rawRule.condition);
+        const add = rawRule.add === undefined
+            ? []
+            : Array.isArray(rawRule.add)
+                ? rawRule.add
+                : [rawRule.add];
+        const remove = rawRule.remove === undefined
+            ? []
+            : Array.isArray(rawRule.remove)
+                ? rawRule.remove
+                : [rawRule.remove];
+        return {
+            condition,
+            add,
+            remove,
+        };
+    });
+}
+function parseRawRulesJson(rawRulesJson) {
+    try {
+        return JSON.parse(rawRulesJson);
+    }
+    catch {
+        throw new Error("Failed to parse `rules` - invalid JSON.");
+    }
+}
+function parseRawCondition(rawCondition) {
+    if (isRawConditionSimple(rawCondition)) {
+        core.debug("Parsing simple condition.");
+        return [
+            [getLabelOnType(undefined), getListOperation(undefined), [rawCondition]],
+        ];
+    }
+    if (isRawConditionSemiSimple(rawCondition)) {
+        core.debug("Parsing simi-simple condition.");
+        return [
+            [
+                getLabelOnType(rawCondition[0]),
+                getListOperation(undefined),
+                [rawCondition[1]],
+            ],
+        ];
+    }
+    if (!isRawConditionComplexFull(rawCondition)) {
+        core.debug("Parsing complex condition.");
+        return [parseRawConditionComplexPart(rawCondition)];
+    }
+    core.debug("Parsing full complex condition.");
+    return rawCondition.map((rawConditionPart, index) => {
+        if (index % 2 === 1) {
+            core.debug("Parsing expression operation.");
+            assert(typeof rawConditionPart === "string");
+            return getExpressionOperation(rawConditionPart);
+        }
+        core.debug("Parsing logic.");
+        assert(typeof rawConditionPart !== "string");
+        return parseRawConditionComplexPart(rawConditionPart);
+    });
+}
+function parseRawConditionComplexPart(rawConditionPart) {
+    assert(Array.isArray(rawConditionPart), `Expecting an array, got: "${String(rawConditionPart)}"`);
+    const [labelOnType, listOperation, labels] = rawConditionPart.length === 2
+        ? [
+            undefined,
+            ...rawConditionPart,
+        ]
+        : rawConditionPart;
+    const labelList = Array.isArray(labels) ? labels : [labels];
+    return [
+        getLabelOnType(labelOnType),
+        getListOperation(listOperation),
+        labelList,
+    ];
+}
+function getLabelOnType(raw) {
+    switch (raw) {
+        case "issue":
+        case undefined:
+            return LabelOnType.ISSUE;
+        case "pull request":
+        case "pr":
+            return LabelOnType.PULL_REQUEST;
+        default:
+            throw new Error(`Invalid type "${raw}".`);
+    }
+}
+function getExpressionOperation(raw) {
+    switch (raw) {
+        case "(":
+            return ExpressionBracket.OPEN;
+        case ")":
+            return ExpressionBracket.CLOSE;
+        case "and":
+        case "&&":
+        case undefined:
+            return ExpressionOperation.AND;
+        case "or":
+        case "||":
+            return ExpressionOperation.OR;
+        default:
+            throw new Error(`Invalid expression operation "${raw}".`);
+    }
+}
+function getListOperation(raw) {
+    switch (raw) {
+        case "none":
+        case "not":
+            return ListOperation.NONE;
+        case "some":
+            return ListOperation.SOME;
+        case "and":
+        case "&&":
+        case undefined:
+            return ListOperation.ALL;
+        default:
+            throw new Error(`Invalid list operation "${raw}".`);
+    }
+}
+function isRawConditionSimple(condition) {
+    return typeof condition === "string";
+}
+function isRawConditionSemiSimple(condition) {
+    return condition.length === 2 && rawLabelOnTypes.has(condition[0]);
+}
+function isRawConditionComplexFull(condition) {
+    return Array.isArray(condition[0]);
+}
+
+const ghToken = core.getInput("github_token");
+const rawRules = core.getInput("rules");
+await main().catch((error) => {
     core.setFailed(error instanceof Error ? error.message : String(error));
+});
+async function main() {
+    if (process.env.NODE_ENV === "test") {
+        console.log("it works");
+        return;
+    }
+    const octokit = getOctokit_1(ghToken);
+    const { context: { payload }, } = github;
+    core.debug("Loaded payload");
+    const rules = parseRules(rawRules);
+    core.debug("Rules parsed successfully.");
+    if (!payloadIsAsExpected(payload)) {
+        console.log("Nothing to do - payload not as expected.");
+        return;
+    }
+    core.debug("Payload is as expected.");
+    const repoName = getRepoName(payload);
+    core.debug(`Repo Name: ${repoName.owner}/${repoName.name}`);
+    const { pullRequest: { closingIssuesReferences: { nodes: closingIssuesReferencesNodes }, }, labels: allLabels, } = await getExtraData(repoName, octokit, payload);
+    core.debug("Successfully fetched extra data.");
+    const closingIssues = closingIssuesReferencesNodes.map((node) => node.number);
+    const closingIssuesDebugString = closingIssues
+        .map((number) => `#${number}`)
+        .join(", ");
+    core.debug(`PR's closing issues: ${closingIssuesDebugString}`);
+    if (closingIssues.length === 0) {
+        console.log("Nothing to do - no closing issues.");
+        return;
+    }
+    const issuesData = await getIssuesData(repoName, octokit, payload, closingIssues);
+    core.debug("Successfully fetched closing issues data.");
+    const allLabelsByName = new Map(allLabels.map((label) => [label.name, label]));
+    const getLabelId = (name) => {
+        assert(allLabelsByName.has(name), `No label found with name "${name}".`);
+        return allLabelsByName.get(name).id;
+    };
+    const mergedAt = new Date(payload.pull_request.merged_at);
+    const prLabels = new Set(payload.pull_request.labels.map((label) => label.name));
+    const issueLabelChanges = new Map(issuesData
+        .map((issue) => {
+        if (issue.closed !== true) {
+            console.log(`Skipping issue #${issue.number} - not closed.`);
+            return null;
+        }
+        assert(issue.closedAt instanceof Date);
+        const closingTimeDiff = Math.abs(mergedAt.getTime() - issue.closedAt.getTime());
+        core.debug(`Close/merge time difference: ${closingTimeDiff}s.`);
+        if (closingTimeDiff > 0) {
+            console.log(`Skipping issue #${issue.number} - Issue wasn't closed at the same time as the PR, assuming PR didn't close issue.`);
+            return null;
+        }
+        const issueLabels = new Set([...issue.labels.values()].map((label) => label.name));
+        const rule = findPassingRule(rules, prLabels, issueLabels);
+        if (rule === undefined) {
+            console.log(`Skipping issue #${issue.number} - no matching rule found - nothing to do.`);
+            return null;
+        }
+        const toAdd = (rule.add ?? [])
+            .filter((label) => !issueLabels.has(label))
+            .map(getLabelId);
+        core.debug(`Label ids to add: ${JSON.stringify(toAdd)}`);
+        const toRemove = (rule.remove ?? [])
+            .filter((label) => issueLabels.has(label))
+            .map(getLabelId);
+        core.debug(`Label ids to remove: ${JSON.stringify(toRemove)}`);
+        if (toAdd.length === 0 && toRemove.length === 0) {
+            console.log(`Skipping issue #${issue.number} - no labels to add or remove.`);
+            return null;
+        }
+        return [issue.id, [toAdd, toRemove]];
+    })
+        .filter(notNullable));
+    if (issueLabelChanges.size === 0) {
+        console.log("Nothing to do - no rules matched.");
+        return;
+    }
+    core.debug("Updating labels.");
+    await updateIssueLabels(octokit, issueLabelChanges);
 }

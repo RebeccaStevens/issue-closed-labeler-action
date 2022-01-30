@@ -24,5 +24,9 @@
     "alwaysStrict": true,
     "target": "ES2020",
     "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   }
 }

@@ -1,6 +1,15 @@
 name: Issue Close Labeler
 author: Rebecca Stevens
 description: Conditionally add or remove labels of issues when closed via a PR.
+
+inputs:
+  github_token:
+    description: "GitHub token"
+    required: true
+  rules:
+    description: "The rules to follow to set and unset labels"
+    required: true
+
 runs:
   using: "node16"
   main: "dist/index.js"
