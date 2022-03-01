@@ -2679,10 +2679,10 @@ eslint-plugin-filenames@^1.3.2:
     lodash.snakecase "4.1.1"
     lodash.upperfirst "4.3.1"
 
-eslint-plugin-functional@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-functional/-/eslint-plugin-functional-4.1.1.tgz#181b6c491fb73f05887cf51349118eeef0681bd5"
-  integrity sha512-FgYMsScNCDilsxpYLboYLkY/y36VfocUD02tB1CJc8q4d+/H06ADKa9v6Dmk8kKlzIIW4V/wfNOVuxNusa0avw==
+eslint-plugin-functional@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-functional/-/eslint-plugin-functional-4.2.0.tgz#b6d942c07c760eb30c943e02ef041971a23674e6"
+  integrity sha512-3v1DuKQTGwJo93UQ5SKzEjvJTaMGfznzwgGjWEBhLXxJfOMhcW7O6QUO1pmb5aLou9hoh7r31lkPvWmbIbIbew==
   dependencies:
     "@typescript-eslint/experimental-utils" "^5.0.0"
     deepmerge-ts "^2.0.1"
