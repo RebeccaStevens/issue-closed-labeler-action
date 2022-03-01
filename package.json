@@ -58,7 +58,7 @@
     "@semantic-release/release-notes-generator": "^10.0.3",
     "@types/node": "^17.0.21",
     "@types/rollup-plugin-auto-external": "^2.0.2",
-    "@typescript-eslint/eslint-plugin": "^5.10.2",
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
     "@vercel/ncc": "^0.33.3",
     "ava": "^4.0.1",
