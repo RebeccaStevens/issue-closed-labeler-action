@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^16.2.4",
-    "@commitlint/config-conventional": "^16.2.1",
+    "@commitlint/config-conventional": "^17.0.2",
     "@rebeccastevens/eslint-config": "^1.2.2",
     "@rollup/plugin-commonjs": "^21.0.2",
     "@rollup/plugin-json": "^4.1.0",
