@@ -5778,9 +5778,9 @@ __metadata:
   linkType: hard
 
 "iter-ops@npm:^1.6.2":
-  version: 1.6.2
-  resolution: "iter-ops@npm:1.6.2"
-  checksum: 0cf9f216f3e36cba5b20b7495dd747077974b6e9bb881c843fc4b0943958dd75e0734b696aa5faeb79f19a673f745cc2c76fcfc83ba84e21d6b61e0f12c08da9
+  version: 1.6.4
+  resolution: "iter-ops@npm:1.6.4"
+  checksum: ad89325ee6314ea3510235642958f21c75dea24c50ac6a0f960bb80f1eabb490c455efc6ce2e8bb1615408ae56b09d5526c2342ffdee63a0c39b67b6ebbbb847
   languageName: node
   linkType: hard
 
