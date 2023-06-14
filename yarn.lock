@@ -1122,6 +1122,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@octokit/openapi-types@npm:^18.0.0":
+  version: 18.0.0
+  resolution: "@octokit/openapi-types@npm:18.0.0"
+  checksum: d487d6c6c1965e583eee417d567e4fe3357a98953fc49bce1a88487e7908e9b5dbb3e98f60dfa340e23b1792725fbc006295aea071c5667a813b9c098185b56f
+  languageName: node
+  linkType: hard
+
 "@octokit/plugin-paginate-rest@npm:^2.17.0":
   version: 2.17.0
   resolution: "@octokit/plugin-paginate-rest@npm:2.17.0"
@@ -1239,6 +1246,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@octokit/types@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "@octokit/types@npm:10.0.0"
+  dependencies:
+    "@octokit/openapi-types": ^18.0.0
+  checksum: 8aafba2ff0cd2435fb70c291bf75ed071c0fa8a865cf6169648732068a35dec7b85a345851f18920ec5f3e94ee0e954988485caac0da09ec3f6781cc44fe153a
+  languageName: node
+  linkType: hard
+
 "@octokit/types@npm:^6.0.3, @octokit/types@npm:^6.16.1, @octokit/types@npm:^6.34.0":
   version: 6.34.0
   resolution: "@octokit/types@npm:6.34.0"
@@ -1248,7 +1264,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@octokit/types@npm:^7.0.0, @octokit/types@npm:^7.2.0, @octokit/types@npm:^7.5.0":
+"@octokit/types@npm:^7.0.0, @octokit/types@npm:^7.5.0":
   version: 7.5.1
   resolution: "@octokit/types@npm:7.5.1"
   dependencies:
@@ -5679,7 +5695,7 @@ __metadata:
     "@commitlint/cli": ^17.1.2
     "@commitlint/config-conventional": ^17.0.3
     "@octokit/graphql": ^5.0.0
-    "@octokit/types": ^7.2.0
+    "@octokit/types": ^10.0.0
     "@rebeccastevens/eslint-config": ^1.2.2
     "@rollup/plugin-commonjs": ^22.0.1
     "@rollup/plugin-json": ^4.1.0
