@@ -1633,11 +1633,11 @@ __metadata:
   linkType: hard
 
 "@types/rollup-plugin-auto-external@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@types/rollup-plugin-auto-external@npm:2.0.2"
+  version: 2.0.5
+  resolution: "@types/rollup-plugin-auto-external@npm:2.0.5"
   dependencies:
     rollup: ">=2.0.0"
-  checksum: 0a59dc0c3a69a25eaa745c68bb4c1aadc37d5608f8d924101f7e2dfd61e4d1cfd39703bc7c3b2734653f189ad4f80f57f430d08f19bf61d72a3d531ebd85f1c4
+  checksum: a24aa6bb2de86e766208756c921096bf56f45aafcc8d11bb314407328e4511bd5b9678d6815e77ff9b14a4e38b704998aaf83bfe2e761055e731dcc99ba4e445
   languageName: node
   linkType: hard
 
