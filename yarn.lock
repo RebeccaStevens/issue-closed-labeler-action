@@ -1765,14 +1765,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vercel/ncc@npm:^0.34.0":
-  version: 0.34.0
-  resolution: "@vercel/ncc@npm:0.34.0"
+"@vercel/ncc@npm:^0.38.0":
+  version: 0.38.3
+  resolution: "@vercel/ncc@npm:0.38.3"
   dependencies:
     node-gyp: latest
   bin:
     ncc: dist/ncc/cli.js
-  checksum: 3282578e990572759454f7f8d7ef025f2ae060b261fcb28a96d165350e3665438dc8fb72caf122081d6c57277e4899dab30ea0d8759bfd90baf37286cb887597
+  checksum: 172ff37f17c7648755c5bd1bb09cfafa5a601a20ac8e008d6b220a6e727dfa3caef1a82a618a94383c679dd0265ff4a852ed25a491d4b3ca16d54f1ac03aed78
   languageName: node
   linkType: hard
 
@@ -5694,7 +5694,7 @@ __metadata:
     "@types/rollup-plugin-auto-external": ^2.0.2
     "@typescript-eslint/eslint-plugin": ^5.36.1
     "@typescript-eslint/parser": ^5.30.0
-    "@vercel/ncc": ^0.34.0
+    "@vercel/ncc": ^0.38.0
     ava: ^4.3.3
     c8: ^7.11.3
     codecov: ^3.8.3
