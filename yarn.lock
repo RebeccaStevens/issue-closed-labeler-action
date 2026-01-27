@@ -5,13 +5,22 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@actions/core@npm:^1.9.1":
-  version: 1.9.1
-  resolution: "@actions/core@npm:1.9.1"
+"@actions/core@npm:^2.0.0":
+  version: 2.0.3
+  resolution: "@actions/core@npm:2.0.3"
   dependencies:
-    "@actions/http-client": ^2.0.1
-    uuid: ^8.3.2
-  checksum: 8f9823bed2e172fcabb65a63e136f98bbd0614bf37b5012caff4d3216471de19956e6bc0ed2767c52bccc3d02a7450a3b902a83f56bfa255477858c6341d1e2e
+    "@actions/exec": ^2.0.0
+    "@actions/http-client": ^3.0.2
+  checksum: d0f7e9f5dbb1c52fa56c2208544a0d13bcb40946457d2c2bea5e51c6de257a6e8ec59259888a837ecf1af1f95509e7472cc5eecd403e97c5f05588d6eef10f8a
+  languageName: node
+  linkType: hard
+
+"@actions/exec@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@actions/exec@npm:2.0.0"
+  dependencies:
+    "@actions/io": ^2.0.0
+  checksum: 001e4139129fce56459c7fa3970d50e85dc9bffef5fe451312ff1277f1f18d553d221012a199d58b3a5c2198bd0c71b2060dd28e52ebfeaf5a91331347c93208
   languageName: node
   linkType: hard
 
@@ -33,6 +42,23 @@ __metadata:
   dependencies:
     tunnel: ^0.0.6
   checksum: 799ec3df91e28a9da91ce6592e94f8b8923ccf6cc21a2f72c7429be5af5273f1625335411adc2a1bb222d56c852d5767214dfa6fa32a6da7e81dba8290e08f17
+  languageName: node
+  linkType: hard
+
+"@actions/http-client@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "@actions/http-client@npm:3.0.2"
+  dependencies:
+    tunnel: ^0.0.6
+    undici: ^6.23.0
+  checksum: 8a4e63499af87ba6248f364fc0dd8325945be51d9f765475d67b2e6ce56a56a6a01ddc2750b89e6112dc70e4679bb881d9526f7ce3bf8c9383a7a1488d248379
+  languageName: node
+  linkType: hard
+
+"@actions/io@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@actions/io@npm:2.0.0"
+  checksum: afd29e777bedd8bb59143f12aa7c28e1112ce7aed2fed953fddc51833cbb88f0b4e379a6f3aece024c974227c01875fc0cd754a27e5953259d3a90fa3fbf0f68
   languageName: node
   linkType: hard
 
@@ -5674,7 +5700,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "issue-closed-labeler-action@workspace:."
   dependencies:
-    "@actions/core": ^1.9.1
+    "@actions/core": ^2.0.0
     "@actions/github": ^5.0.3
     "@commitlint/cli": ^17.1.2
     "@commitlint/config-conventional": ^17.0.3
@@ -9351,6 +9377,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"undici@npm:^6.23.0":
+  version: 6.23.0
+  resolution: "undici@npm:6.23.0"
+  checksum: f0953920330375e76d1614381af07da9d7c21ad3244d0785b3f7bd4072635c20a1f432ef3a129baa3e4a92278ce32e9ea2ca8b5f0e0554a5739222af332c08fe
+  languageName: node
+  linkType: hard
+
 "unique-filename@npm:^1.1.1":
   version: 1.1.1
   resolution: "unique-filename@npm:1.1.1"
@@ -9433,7 +9466,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^8.0.0, uuid@npm:^8.3.2":
+"uuid@npm:^8.0.0":
   version: 8.3.2
   resolution: "uuid@npm:8.3.2"
   bin:
