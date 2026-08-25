@@ -5731,7 +5731,7 @@ __metadata:
     js-yaml: ^4.1.0
     lint-staged: ^13.0.0
     markdownlint-cli: ^0.32.2
-    marked: ^4.0.12
+    marked: ^18.0.0
     prettier: 2.7.1
     rimraf: ^3.0.2
     rollup: ^2.77.2
@@ -6551,7 +6551,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:^4.0.10, marked@npm:^4.0.12":
+"marked@npm:^18.0.0":
+  version: 18.0.11
+  resolution: "marked@npm:18.0.11"
+  bin:
+    marked: bin/marked.js
+  checksum: 1aa86d864e2e3cad290b53e0c706c94917357a14cfcdb2d20d1f3e524c8dd2b8ef8e07d98ba96fa3d1fe94b196444b8518bb689569f937e422950624acf5a2de
+  languageName: node
+  linkType: hard
+
+"marked@npm:^4.0.10":
   version: 4.1.0
   resolution: "marked@npm:4.1.0"
   bin:
