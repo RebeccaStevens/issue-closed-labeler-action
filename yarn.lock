@@ -5732,7 +5732,7 @@ __metadata:
     lint-staged: ^13.0.0
     markdownlint-cli: ^0.32.2
     marked: ^4.0.12
-    prettier: 2.7.1
+    prettier: 3.9.9
     rimraf: ^3.0.2
     rollup: ^2.77.2
     rollup-plugin-auto-external: ^2.0.0
@@ -7840,7 +7840,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:2.7.1, prettier@npm:^2.2.1":
+"prettier@npm:3.9.9":
+  version: 3.9.9
+  resolution: "prettier@npm:3.9.9"
+  bin:
+    prettier: bin/prettier.cjs
+  checksum: fbd41978e758c07ce493728c73c9011400446281aca707024e58f7b6ea5ad1dd2f12f8cc51ff76ceb7c7749947db876f6074030a5ec333d8e4084c29455ea948
+  languageName: node
+  linkType: hard
+
+"prettier@npm:^2.2.1":
   version: 2.7.1
   resolution: "prettier@npm:2.7.1"
   bin:
